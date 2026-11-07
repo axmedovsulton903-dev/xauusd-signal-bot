@@ -34,7 +34,11 @@ jobs:
           BALANCE: ${{ secrets.BALANCE }}
           SNAPSHOT_HOUR_TK: ${{ vars.SNAPSHOT_HOUR_TK }}
         run: |
-          case "${{ github.event.inputs.mode || 'run' }}" in
+          MODE="${{ github.event.inputs.mode || 'run' }}"
+          if [ "$MODE" = "run" ] && { [ -z "$TG_TOKEN" ] || [ -z "$TG_CHAT_ID" ]; }; then
+            echo "TG_TOKEN yoki TG_CHAT_ID sirlari hali qo'shilmagan — o'tkazib yuborildi."; exit 0
+          fi
+          case "$MODE" in
             etalon) python bot.py --etalon ;;
             chatid) python bot.py --chatid ;;
             dry)    python bot.py --dry ;;
