@@ -36,6 +36,12 @@ jobs:
         run: |
           MODE="${{ github.event.inputs.mode || 'run' }}"
           export TG_TOKEN="$(printf '%s' "$TG_TOKEN" | grep -oE '[0-9]{6,}:[A-Za-z0-9_-]{30,}' | head -n1)"
+          if [ -z "$TG_CHAT_ID" ] && [ -f chat_id.txt ]; then TG_CHAT_ID="$(cat chat_id.txt)"; fi
+          if [ -z "$TG_CHAT_ID" ] && [ -n "$TG_TOKEN" ]; then
+            TG_CHAT_ID="$(curl -s "https://api.telegram.org/bot$TG_TOKEN/getUpdates" | grep -oE '"chat":\{"id":-?[0-9]+' | head -n1 | grep -oE -- '-?[0-9]+$' || true)"
+            if [ -n "$TG_CHAT_ID" ]; then echo "$TG_CHAT_ID" > chat_id.txt; echo "Chat ID topildi va saqlandi."; fi
+          fi
+          export TG_CHAT_ID
           if [ "$MODE" = "run" ] && { [ -z "$TG_TOKEN" ] || [ -z "$TG_CHAT_ID" ]; }; then
             echo "TG_TOKEN yoki TG_CHAT_ID sirlari hali qo'shilmagan — o'tkazib yuborildi."; exit 0
           fi
@@ -47,10 +53,10 @@ jobs:
           esac
       - name: Holatni saqlash
         run: |
-          if [ -n "$(git status --porcelain state.json)" ]; then
+          if [ -n "$(git status --porcelain state.json chat_id.txt)" ]; then
             git config user.name "signal-bot"
             git config user.email "signal-bot@users.noreply.github.com"
-            git add state.json
+            git add state.json chat_id.txt 2>/dev/null || git add state.json
             git commit -m "state" -q
             git pull --rebase -q && git push -q
           fi
