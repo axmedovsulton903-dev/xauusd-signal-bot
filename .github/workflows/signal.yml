@@ -35,6 +35,7 @@ jobs:
           SNAPSHOT_HOUR_TK: ${{ vars.SNAPSHOT_HOUR_TK }}
         run: |
           MODE="${{ github.event.inputs.mode || 'run' }}"
+          export TG_TOKEN="$(printf '%s' "$TG_TOKEN" | grep -oE '[0-9]{6,}:[A-Za-z0-9_-]{30,}' | head -n1)"
           if [ "$MODE" = "run" ] && { [ -z "$TG_TOKEN" ] || [ -z "$TG_CHAT_ID" ]; }; then
             echo "TG_TOKEN yoki TG_CHAT_ID sirlari hali qo'shilmagan — o'tkazib yuborildi."; exit 0
           fi
