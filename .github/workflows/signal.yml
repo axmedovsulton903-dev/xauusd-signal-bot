@@ -45,6 +45,11 @@ jobs:
             if [ -n "$TG_CHAT_ID" ]; then echo "$TG_CHAT_ID" > chat_id.txt; echo "Chat ID topildi va saqlandi."; fi
           fi
           export TG_CHAT_ID
+          {
+            echo "Token: $([ -n "$TG_TOKEN" ] && echo topildi || echo TOPILMADI)"
+            [ -n "$TG_TOKEN" ] && echo "Telegram getMe: $(curl -s "https://api.telegram.org/bot$TG_TOKEN/getMe" | grep -oE '"ok":(true|false)' || true)"
+            echo "Chat ID: $([ -n "$TG_CHAT_ID" ] && echo topildi || echo TOPILMADI — botga /start yozing)"
+          } | tee -a "$GITHUB_STEP_SUMMARY"
           if [ "$MODE" = "run" ] && { [ -z "$TG_TOKEN" ] || [ -z "$TG_CHAT_ID" ]; }; then
             echo "TG_TOKEN yoki TG_CHAT_ID sirlari hali qo'shilmagan — o'tkazib yuborildi."; exit 0
           fi
